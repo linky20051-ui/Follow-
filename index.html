@@ -3,338 +3,1207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Automation System</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <title>Instagram Manager Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial; }
-        body { background: #0f0f23; color: #00ff00; padding: 10px; font-size: 14px; }
-        .terminal { background: #000; border: 2px solid #00ff00; border-radius: 10px; padding: 15px; }
-        .header { text-align: center; margin-bottom: 20px; color: #ff00ff; }
-        .tab-container { display: flex; margin-bottom: 20px; border-bottom: 1px solid #00ff00; }
-        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; }
-        .tab.active { border: 1px solid #00ff00; border-bottom: none; background: #000; }
-        .panel { display: none; padding: 20px; background: #111; border-radius: 5px; }
-        .panel.active { display: block; }
-        input, textarea, select { 
-            width: 100%; 
-            padding: 10px; 
-            margin: 10px 0; 
-            background: #222; 
-            border: 1px solid #00ff00; 
-            color: #00ff00; 
-            border-radius: 5px;
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         }
-        button { 
-            background: #0088cc; 
-            color: white; 
-            border: none; 
-            padding: 12px 24px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 5px;
-            font-weight: bold;
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        button:hover { background: #0055aa; }
-        .btn-danger { background: #cc0000; }
-        .btn-success { background: #00aa00; }
-        .log { 
-            background: #000; 
-            padding: 15px; 
-            border: 1px solid #00ff00; 
-            border-radius: 5px; 
-            height: 300px; 
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            min-height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .app-header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
             font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
         }
-        .log-line { margin: 5px 0; padding: 3px; }
-        .success { color: #00ff00; }
-        .error { color: #ff0000; }
-        .warning { color: #ffff00; }
-        .info { color: #0088ff; }
-        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .account-card { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; }
-        .status-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .status-active { background: #00ff00; }
-        .status-inactive { background: #ff0000; }
-        .stats { display: flex; justify-content: space-around; margin: 20px 0; }
-        .stat-box { background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: center; }
+
+        /* Main Layout */
+        .app-main {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar */
+        .app-sidebar {
+            width: 250px;
+            background: var(--light);
+            border-right: 1px solid var(--gray-light);
+            padding: 20px 0;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 14px 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            font-weight: 500;
+            border-right: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            border-right-color: var(--primary);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Content */
+        .app-content {
+            flex: 1;
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Headers */
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .section-header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-header i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: var(--gray);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Accounts List */
+        .accounts-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .account-item {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .account-item:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .account-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .account-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .account-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .account-details p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .account-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Action Cards */
+        .action-card {
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: var(--primary);
+        }
+
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            color: white;
+            font-size: 24px;
+        }
+
+        /* Task List */
+        .task-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .task-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .task-details p {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* Progress */
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-main {
+                flex-direction: column;
+            }
+
+            .app-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--gray-light);
+            }
+
+            .nav-menu {
+                display: flex;
+                overflow-x: auto;
+                padding: 10px 0;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+                border-right: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .nav-item.active {
+                border-right: none;
+                border-bottom-color: var(--primary);
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-stats {
+                display: none;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="header">
-            <h1>⚡ Instagram Automation System v2.0</h1>
-            <p>Advanced Multi-Account Management</p>
-        </div>
-
-        <div class="tab-container">
-            <div class="tab active" onclick="showPanel('dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="showPanel('accounts')">👥 Accounts</div>
-            <div class="tab" onclick="showPanel('actions')">⚙️ Actions</div>
-            <div class="tab" onclick="showPanel('scheduler')">📅 Scheduler</div>
-            <div class="tab" onclick="showPanel('proxies')">🔗 Proxies</div>
-            <div class="tab" onclick="showPanel('settings')">⚙️ Settings</div>
-        </div>
-
-        <!-- Dashboard Panel -->
-        <div id="dashboard" class="panel active">
-            <div class="stats">
-                <div class="stat-box">
-                    <h3>Total Accounts</h3>
-                    <p id="totalAccounts">0</p>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fab fa-instagram"></i>
+                <h1>Instagram Manager Pro</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalAccounts">0</div>
+                    <div class="stat-label">الحسابات</div>
                 </div>
-                <div class="stat-box">
-                    <h3>Active</h3>
-                    <p id="activeAccounts">0</p>
+                <div class="stat-item">
+                    <div class="stat-value" id="activeTasks">0</div>
+                    <div class="stat-label">المهام النشطة</div>
                 </div>
-                <div class="stat-box">
-                    <h3>Today Actions</h3>
-                    <p id="todayActions">0</p>
-                </div>
-                <div class="stat-box">
-                    <h3>Success Rate</h3>
-                    <p id="successRate">0%</p>
+                <div class="stat-item">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">معدل النجاح</div>
                 </div>
             </div>
+        </header>
 
-            <div class="log">
-                <h3>System Logs</h3>
-                <div id="systemLogs">
-                    <!-- Logs will appear here -->
+        <!-- Main Content -->
+        <div class="app-main">
+            <!-- Sidebar -->
+            <nav class="app-sidebar">
+                <ul class="nav-menu">
+                    <li class="nav-item active" onclick="showSection('dashboard')">
+                        <i class="fas fa-home"></i>
+                        <span>لوحة التحكم</span>
+                    </li>
+                    <li class="nav-item" onclick="showSection('accounts')">
+                        <i class="fas fa-users"></i>
+                        <span>إدارة الحسابات</span>
+                    </li>
+                    <li class="nav-item" onclick="showSection('actions')">
+                        <i class="fas fa-robot"></i>
+                        <span>الإجراءات الآلية</span>
+                    </li>
+                    <li class="nav-item" onclick="showSection('scheduler')">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>جدولة المهام</span>
+                    </li>
+                    <li class="nav-item" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>التقارير والإحصائيات</span>
+                    </li>
+                    <li class="nav-item" onclick="showSection('settings')">
+                        <i class="fas fa-cog"></i>
+                        <span>الإعدادات</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Content Area -->
+            <main class="app-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="content-section active">
+                    <div class="section-header">
+                        <h2>لوحة التحكم</h2>
+                        <p>نظرة عامة على أداء النظام والنشاطات</p>
+                    </div>
+
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-user-plus"></i>
+                                <h3>إضافة حساب جديد</h3>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="newUsername" placeholder="اسم المستخدم">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="form-control" id="newPassword" placeholder="كلمة المرور">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="addAccount()">
+                                <i class="fas fa-plus"></i> إضافة حساب
+                            </button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-bolt"></i>
+                                <h3>إجراءات سريعة</h3>
+                            </div>
+                            <div class="task-list">
+                                <div class="task-item" onclick="quickAction('follow')">
+                                    <div class="task-info">
+                                        <div class="task-icon">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <div class="task-details">
+                                            <h4>متابعة جماعية</h4>
+                                            <p>متابعة مستخدمين جدد</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-left"></i>
+                                </div>
+                                <div class="task-item" onclick="quickAction('like')">
+                                    <div class="task-info">
+                                        <div class="task-icon">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                        <div class="task-details">
+                                            <h4>إعجابات تلقائية</h4>
+                                            <p>إعجاب بالمنشورات الجديدة</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-left"></i>
+                                </div>
+                                <div class="task-item" onclick="quickAction('comment')">
+                                    <div class="task-info">
+                                        <div class="task-icon">
+                                            <i class="fas fa-comment"></i>
+                                        </div>
+                                        <div class="task-details">
+                                            <h4>تعليقات ذكية</h4>
+                                            <p>نشر تعليقات تلقائية</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-left"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-line"></i>
+                                <h3>إحصائيات اليوم</h3>
+                            </div>
+                            <div class="task-list">
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>المتابعات</h4>
+                                        <p>24 من 50 متابعة</p>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 48%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>الإعجابات</h4>
+                                        <p>150 من 200 إعجاب</p>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>التعليقات</h4>
+                                        <p>30 من 50 تعليق</p>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Accounts Section -->
+                <section id="accounts" class="content-section">
+                    <div class="section-header">
+                        <h2>إدارة الحسابات</h2>
+                        <p>إضافة وتعديل وإدارة حسابات إنستجرام</p>
+                    </div>
+
+                    <div class="accounts-list" id="accountsList">
+                        <!-- Accounts will be loaded here -->
+                        <div class="empty-state" id="emptyAccounts">
+                            <i class="fas fa-users"></i>
+                            <h3>لا توجد حسابات</h3>
+                            <p>ابدأ بإضافة حسابك الأول</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Actions Section -->
+                <section id="actions" class="content-section">
+                    <div class="section-header">
+                        <h2>الإجراءات الآلية</h2>
+                        <p>تكوين وتنفيذ الإجراءات الآلية</p>
+                    </div>
+
+                    <div class="cards-grid">
+                        <div class="card action-card" onclick="configureAction('follow')">
+                            <div class="action-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h3>المتابعة</h3>
+                            <p>متابعة مستخدمين حسب القائمة</p>
+                        </div>
+
+                        <div class="card action-card" onclick="configureAction('unfollow')">
+                            <div class="action-icon">
+                                <i class="fas fa-user-minus"></i>
+                            </div>
+                            <h3>إلغاء المتابعة</h3>
+                            <p>إلغاء متابعة غير المتابعين</p>
+                        </div>
+
+                        <div class="card action-card" onclick="configureAction('like')">
+                            <div class="action-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <h3>الإعجاب</h3>
+                            <p>إعجاب بالمنشورات الجديدة</p>
+                        </div>
+
+                        <div class="card action-card" onclick="configureAction('comment')">
+                            <div class="action-icon">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <h3>التعليق</h3>
+                            <p>نشر تعليقات ذكية</p>
+                        </div>
+
+                        <div class="card action-card" onclick="configureAction('story')">
+                            <div class="action-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h3>مشاهدة الستوري</h3>
+                            <p>مشاهدة ستوريات الحسابات</p>
+                        </div>
+
+                        <div class="card action-card" onclick="configureAction('dm')">
+                            <div class="action-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3>الرسائل المباشرة</h3>
+                            <p>إرسال رسائل مباشرة</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Scheduler Section -->
+                <section id="scheduler" class="content-section">
+                    <div class="section-header">
+                        <h2>جدولة المهام</h2>
+                        <p>برمجة المهام لتشغيل تلقائي</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-plus-circle"></i>
+                            <h3>إضافة مهمة مجدولة</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">نوع المهمة</label>
+                            <select class="form-control" id="taskType">
+                                <option value="follow">متابعة</option>
+                                <option value="like">إعجاب</option>
+                                <option value="comment">تعليق</option>
+                                <option value="unfollow">إلغاء متابعة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الوقت</label>
+                            <input type="time" class="form-control" id="taskTime">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">التكرار</label>
+                            <select class="form-control" id="taskRepeat">
+                                <option value="daily">يومي</option>
+                                <option value="weekly">أسبوعي</option>
+                                <option value="monthly">شهري</option>
+                                <option value="once">مرة واحدة</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-block" onclick="addScheduledTask()">
+                            <i class="fas fa-calendar-plus"></i> إضافة إلى الجدول
+                        </button>
+                    </div>
+
+                    <div class="task-list" id="scheduledTasks">
+                        <!-- Scheduled tasks will appear here -->
+                    </div>
+                </section>
+
+                <!-- Analytics Section -->
+                <section id="analytics" class="content-section">
+                    <div class="section-header">
+                        <h2>التقارير والإحصائيات</h2>
+                        <p>تحليل أداء الحسابات والمهام</p>
+                    </div>
+
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-pie"></i>
+                                <h3>نظرة عامة</h3>
+                            </div>
+                            <div class="task-list">
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>إجمالي الإجراءات</h4>
+                                        <p>1,245 إجراء</p>
+                                    </div>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>معدل النجاح</h4>
+                                        <p>92.5%</p>
+                                    </div>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-details">
+                                        <h4>متوسط الوقت</h4>
+                                        <p>2.4 ثانية/إجراء</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-calendar-check"></i>
+                                <h3>نشاط اليوم</h3>
+                            </div>
+                            <canvas id="dailyChart" style="width: 100%; height: 200px;"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings" class="content-section">
+                    <div class="section-header">
+                        <h2>الإعدادات</h2>
+                        <p>تخصيص إعدادات النظام</p>
+                    </div>
+
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-shield-alt"></i>
+                                <h3>إعدادات الأمان</h3>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">تأخير بين الإجراءات (ثانية)</label>
+                                <input type="number" class="form-control" id="actionDelay" value="30" min="5" max="300">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">الحد الأقصى للإجراءات يومياً</label>
+                                <input type="number" class="form-control" id="maxDailyActions" value="150" min="10" max="500">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-network-wired"></i>
+                                <h3>إعدادات الشبكة</h3>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">استخدام البروكسي</label>
+                                <select class="form-control" id="useProxy">
+                                    <option value="true">مفعل</option>
+                                    <option value="false">معطل</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">قائمة البروكسيات</label>
+                                <textarea class="form-control" id="proxyList" rows="4" placeholder="أدخل البروكسيات (سطر لكل بروكسي)"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-database"></i>
+                                <h3>إدارة البيانات</h3>
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="exportData()" style="margin-bottom: 10px;">
+                                <i class="fas fa-download"></i> تصدير البيانات
+                            </button>
+                            <button class="btn btn-success btn-block" onclick="importData()" style="margin-bottom: 10px;">
+                                <i class="fas fa-upload"></i> استيراد البيانات
+                            </button>
+                            <button class="btn btn-danger btn-block" onclick="clearAllData()">
+                                <i class="fas fa-trash"></i> مسح جميع البيانات
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Action Modal -->
+        <div class="modal" id="actionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modalTitle">تكوين الإجراء</div>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div id="modalContent">
+                    <!-- Dynamic content will be loaded here -->
                 </div>
             </div>
         </div>
 
-        <!-- Accounts Panel -->
-        <div id="accounts" class="panel">
-            <h2>Account Management</h2>
-            <div>
-                <input type="text" id="accUsername" placeholder="Username">
-                <input type="password" id="accPassword" placeholder="Password">
-                <input type="text" id="accEmail" placeholder="Email (optional)">
-                <input type="text" id="accProxy" placeholder="Proxy (ip:port:user:pass)">
-                <button onclick="addAccount()">➕ Add Account</button>
-                <button class="btn-danger" onclick="clearAccounts()">🗑️ Clear All</button>
-            </div>
-            
-            <div class="accounts-grid" id="accountsList">
-                <!-- Accounts will be displayed here -->
-            </div>
-        </div>
-
-        <!-- Actions Panel -->
-        <div id="actions" class="panel">
-            <h2>Automation Actions</h2>
-            <select id="actionType">
-                <option value="follow">Follow Users</option>
-                <option value="unfollow">Unfollow Users</option>
-                <option value="like">Like Posts</option>
-                <option value="comment">Comment on Posts</option>
-                <option value="story">Watch Stories</option>
-                <option value="direct">Send DM</option>
-            </select>
-            
-            <textarea id="targets" placeholder="Enter targets (one per line) or post URLs"></textarea>
-            <textarea id="comments" placeholder="Comments (one per line)"></textarea>
-            
-            <div>
-                <label>Accounts to use:</label>
-                <div id="accountSelection"></div>
-            </div>
-            
-            <div>
-                <label>Delay between actions (seconds):</label>
-                <input type="number" id="actionDelay" value="30" min="5">
-            </div>
-            
-            <div>
-                <label>Max actions per account:</label>
-                <input type="number" id="maxActions" value="50" min="1">
-            </div>
-            
-            <button class="btn-success" onclick="startActions()">▶️ Start Actions</button>
-            <button class="btn-danger" onclick="stopActions()">⏹️ Stop</button>
-            
-            <div class="log" id="actionLogs"></div>
-        </div>
-
-        <!-- Scheduler Panel -->
-        <div id="scheduler" class="panel">
-            <h2>Task Scheduler</h2>
-            <div>
-                <label>Schedule Type:</label>
-                <select id="scheduleType">
-                    <option value="daily">Daily</option>
-                    <option value="hourly">Hourly</option>
-                    <option value="specific">Specific Time</option>
-                </select>
-            </div>
-            
-            <div>
-                <label>Time:</label>
-                <input type="time" id="scheduleTime">
-            </div>
-            
-            <div>
-                <label>Actions to schedule:</label>
-                <select multiple id="scheduledActions">
-                    <option value="follow">Follow</option>
-                    <option value="like">Like</option>
-                    <option value="comment">Comment</option>
-                </select>
-            </div>
-            
-            <button onclick="addSchedule()">➕ Add Schedule</button>
-            
-            <div id="schedulesList"></div>
-        </div>
-
-        <!-- Proxies Panel -->
-        <div id="proxies" class="panel">
-            <h2>Proxy Management</h2>
-            <textarea id="proxyList" placeholder="Enter proxies (format: ip:port:user:pass or ip:port)" rows="10"></textarea>
-            <button onclick="addProxies()">Add Proxies</button>
-            <button onclick="testProxies()">Test All Proxies</button>
-            
-            <div id="proxiesStatus"></div>
-        </div>
-
-        <!-- Settings Panel -->
-        <div id="settings" class="panel">
-            <h2>System Settings</h2>
-            <div>
-                <label>API Key:</label>
-                <input type="text" id="apiKey" placeholder="Enter API key">
-            </div>
-            
-            <div>
-                <label>User Agent Rotation:</label>
-                <select id="userAgentMode">
-                    <option value="random">Random</option>
-                    <option value="static">Static</option>
-                </select>
-            </div>
-            
-            <div>
-                <label>Max Concurrent Accounts:</label>
-                <input type="number" id="maxConcurrent" value="3" min="1" max="10">
-            </div>
-            
-            <div>
-                <input type="checkbox" id="useProxies" checked>
-                <label>Use Proxies</label>
-            </div>
-            
-            <div>
-                <input type="checkbox" id="autoRotate">
-                <label>Auto Rotate Accounts</label>
-            </div>
-            
-            <button onclick="saveSettings()">💾 Save Settings</button>
-            <button onclick="exportData()">📤 Export Data</button>
-            <button onclick="importData()">📥 Import Data</button>
-        </div>
+        <!-- Alert Container -->
+        <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
     </div>
 
     <script>
-        // System State
+        // Application State
         let accounts = [];
-        let proxies = [];
         let schedules = [];
-        let isRunning = false;
-        let currentJobs = [];
-        
-        // User Agents for rotation
-        const userAgents = [
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
-            'Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Instagram 219.0.0.12.117 Android'
-        ];
-        
+        let currentAction = null;
+
         // Initialize
-        function init() {
+        document.addEventListener('DOMContentLoaded', function() {
             loadData();
             updateStats();
             renderAccounts();
-            renderAccountSelection();
+            updateUI();
+        });
+
+        // Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate corresponding nav item
+            const navItem = Array.from(document.querySelectorAll('.nav-item')).find(item => 
+                item.onclick.toString().includes(sectionId)
+            );
+            
+            if (navItem) {
+                navItem.classList.add('active');
+            }
         }
-        
-        // Panel Navigation
-        function showPanel(panelId) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(panelId).classList.add('active');
-            document.querySelector(`[onclick="showPanel('${panelId}')"]`).classList.add('active');
-        }
-        
+
         // Account Management
         function addAccount() {
-            const username = document.getElementById('accUsername').value.trim();
-            const password = document.getElementById('accPassword').value.trim();
-            const proxy = document.getElementById('accProxy').value.trim();
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value.trim();
             
             if (!username || !password) {
-                logSystem('Please enter username and password', 'error');
+                showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
+                return;
+            }
+            
+            // Check if account already exists
+            if (accounts.some(acc => acc.username === username)) {
+                showAlert('هذا الحساب مضاف مسبقاً', 'error');
                 return;
             }
             
             const account = {
                 id: Date.now(),
-                username,
-                password,
-                email: document.getElementById('accEmail').value.trim(),
-                proxy: proxy || null,
+                username: username,
+                password: password,
                 status: 'active',
-                lastUsed: null,
-                actionsToday: 0,
+                proxy: null,
                 createdAt: new Date().toISOString(),
-                cookies: null
+                lastActive: null,
+                stats: {
+                    follows: 0,
+                    likes: 0,
+                    comments: 0,
+                    unfollows: 0
+                }
             };
             
             accounts.push(account);
             saveData();
             renderAccounts();
-            renderAccountSelection();
             updateStats();
             
-            // Clear inputs
-            document.getElementById('accUsername').value = '';
-            document.getElementById('accPassword').value = '';
-            document.getElementById('accEmail').value = '';
-            document.getElementById('accProxy').value = '';
+            // Clear form
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
             
-            logSystem(`Account ${username} added`, 'success');
+            showAlert('تم إضافة الحساب بنجاح', 'success');
             
-            // Test account login
+            // Test the account
             testAccount(account.id);
         }
-        
+
         function renderAccounts() {
             const container = document.getElementById('accountsList');
+            const emptyState = document.getElementById('emptyAccounts');
+            
+            if (accounts.length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                return;
+            }
+            
+            emptyState.style.display = 'none';
             container.innerHTML = '';
             
             accounts.forEach(account => {
-                const card = document.createElement('div');
-                card.className = 'account-card';
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span class="status-indicator ${account.status === 'active' ? 'status-active' : 'status-inactive'}"></span>
-                            <strong>${account.username}</strong>
+                const accountElement = document.createElement('div');
+                accountElement.className = 'account-item';
+                accountElement.innerHTML = `
+                    <div class="account-info">
+                        <div class="account-avatar">
+                            ${account.username.charAt(0).toUpperCase()}
                         </div>
-                        <button onclick="removeAccount(${account.id})" style="background: #cc0000; padding: 5px 10px; font-size: 12px;">X</button>
+                        <div class="account-details">
+                            <h4>${account.username}</h4>
+                            <p>تم الإضافة: ${new Date(account.createdAt).toLocaleDateString('ar-EG')}</p>
+                        </div>
                     </div>
-                    <p>Actions today: ${account.actionsToday || 0}</p>
-                    <p>Proxy: ${account.proxy ? '✓' : '✗'}</p>
-                    <p>Added: ${new Date(account.createdAt).toLocaleDateString()}</p>
-                    <button onclick="testAccount(${account.id})" style="font-size: 12px; padding: 5px;">Test</button>
+                    <div class="account-actions">
+                        <span class="account-status status-${account.status}">
+                            ${account.status === 'active' ? 'نشط' : 'غير نشط'}
+                        </span>
+                        <button class="btn btn-sm btn-danger" onclick="removeAccount(${account.id})" style="margin-right: 10px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="testAccount(${account.id})">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
                 `;
-                container.appendChild(card);
+                container.appendChild(accountElement);
             });
         }
-        
+
+        function removeAccount(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا الحساب؟')) return;
+            
+            accounts = accounts.filter(acc => acc.id !== id);
+            saveData();
+            renderAccounts();
+            updateStats();
+            showAlert('تم حذف الحساب', 'success');
+        }
+
+        function testAccount(id) {
+            const account = accounts.find(acc => acc.id === id);
+            if (!account) return;
+            
+            showAlert(`جاري اختبار حساب ${account.username}...`, 'info');
+            
+            // Simulate login test
+            setTimeout(() => {
+                const success = Math.random() > 0.3;
+                account.status = success ? 'active' : 'inactive';
+                account.lastActive = new Date().toISOString();
+                
+                saveData();
+                renderAccounts();
+                updateStats();
+                
+                showAlert(
+                    success ? `تم تسجيل الدخول بنجاح إلى ${account.username}` : `فشل تسجيل الدخول إلى ${account.username}`,
+                    success ? 'success' : 'error'
+                );
+            }, 2000);
+        }
+
+        // Actions Configuration
+        function configureAction(actionType) {
+            currentAction = actionType;
+            
+            let modalContent = '';
+            const title = getActionTitle(actionType);
+            
+            switch(actionType) {
+                case 'follow':
+                    modalContent = `
+                        <div class="form-group">
+                            <label class="form-label">قائمة المستخدمين للمتابعة</label>
+                            <textarea class="form-control" id="targetUsers" rows="5" placeholder="أدخل أسماء المستخدمين (سطر لكل مستخدم)"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">عدد المتابعات اليومية</label>
+                            <input type="number" class="form-control" id="followLimit" value="50" min="10" max="200">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'like':
+                    modalContent = `
+                        <div class="form-group">
+                            <label class="form-label">هاشتاقات البحث</label>
+                            <textarea class="form-control" id="hashtags" rows="3" placeholder="#هاشتاق1 #هاشتاق2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">عدد الإعجابات اليومية</label>
+                            <input type="number" class="form-control" id="likeLimit" value="100" min="20" max="300">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'comment':
+                    modalContent = `
+                        <div class="form-group">
+                            <label class="form-label">نصوص التعليقات</label>
+                            <textarea class="form-control" id="commentTexts" rows="4" placeholder="اكتب نصوص التعليقات (سطر لكل تعليق)"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">عدد التعليقات اليومية</label>
+                            <input type="number" class="form-control" id="commentLimit" value="30" min="5" max="100">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            modalContent += `
+                <div class="form-group">
+                    <label class="form-label">اختر الحسابات</label>
+                    <div id="accountSelection"></div>
+                </div>
+                <button class="btn btn-success btn-block" onclick="startAction()">
+                    <i class="fas fa-play"></i> بدء التنفيذ
+                </button>
+            `;
+            
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('actionModal').classList.add('active');
+            
+            // Render account checkboxes
+            renderAccountSelection();
+        }
+
         function renderAccountSelection() {
             const container = document.getElementById('accountSelection');
             container.innerHTML = '';
@@ -342,181 +1211,121 @@
             accounts.forEach(account => {
                 const div = document.createElement('div');
                 div.innerHTML = `
-                    <input type="checkbox" id="acc_${account.id}" value="${account.id}">
-                    <label for="acc_${account.id}">${account.username}</label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <input type="checkbox" value="${account.id}" ${account.status === 'active' ? 'checked' : ''}>
+                        <span>${account.username} (${account.status === 'active' ? 'نشط' : 'غير نشط'})</span>
+                    </label>
                 `;
                 container.appendChild(div);
             });
         }
-        
-        function removeAccount(id) {
-            accounts = accounts.filter(acc => acc.id !== id);
-            saveData();
-            renderAccounts();
-            renderAccountSelection();
-            updateStats();
-            logSystem('Account removed', 'warning');
+
+        function getActionTitle(type) {
+            const titles = {
+                'follow': 'متابعة المستخدمين',
+                'unfollow': 'إلغاء المتابعة',
+                'like': 'الإعجاب بالمنشورات',
+                'comment': 'نشر التعليقات',
+                'story': 'مشاهدة الستوريات',
+                'dm': 'الرسائل المباشرة'
+            };
+            return titles[type] || 'إجراء';
         }
-        
-        function clearAccounts() {
-            if (confirm('Delete ALL accounts?')) {
-                accounts = [];
-                saveData();
-                renderAccounts();
-                renderAccountSelection();
-                updateStats();
-                logSystem('All accounts cleared', 'warning');
-            }
-        }
-        
-        function testAccount(id) {
-            const account = accounts.find(acc => acc.id === id);
-            if (!account) return;
+
+        function startAction() {
+            const selectedAccounts = Array.from(document.querySelectorAll('#accountSelection input:checked'))
+                .map(cb => parseInt(cb.value));
             
-            logSystem(`Testing account ${account.username}...`, 'info');
-            
-            // Simulate login test
-            setTimeout(() => {
-                const success = Math.random() > 0.3;
-                if (success) {
-                    account.status = 'active';
-                    logSystem(`Account ${account.username} login successful`, 'success');
-                } else {
-                    account.status = 'inactive';
-                    logSystem(`Account ${account.username} login failed`, 'error');
-                }
-                saveData();
-                renderAccounts();
-            }, 2000);
-        }
-        
-        // Action Execution
-        function startActions() {
-            if (isRunning) {
-                logSystem('Actions already running', 'warning');
+            if (selectedAccounts.length === 0) {
+                showAlert('الرجاء اختيار حساب واحد على الأقل', 'error');
                 return;
             }
             
-            const actionType = document.getElementById('actionType').value;
-            const targets = document.getElementById('targets').value.split('\n').filter(t => t.trim());
-            const comments = document.getElementById('comments').value.split('\n').filter(c => c.trim());
-            const delay = parseInt(document.getElementById('actionDelay').value) * 1000;
-            const maxActions = parseInt(document.getElementById('maxActions').value);
+            closeModal();
+            showAlert('بدأ تنفيذ الإجراء...', 'info');
             
-            if (targets.length === 0) {
-                logSystem('No targets specified', 'error');
-                return;
-            }
-            
-            // Get selected accounts
-            const selectedAccountIds = [];
-            document.querySelectorAll('#accountSelection input:checked').forEach(cb => {
-                selectedAccountIds.push(parseInt(cb.value));
-            });
-            
-            if (selectedAccountIds.length === 0) {
-                logSystem('No accounts selected', 'error');
-                return;
-            }
-            
-            isRunning = true;
-            logSystem(`Starting ${actionType} actions...`, 'info');
-            
-            // Simulate actions
-            simulateActions(actionType, targets, selectedAccountIds, delay, maxActions, comments);
+            // Simulate action execution
+            simulateActionExecution(currentAction, selectedAccounts);
         }
-        
-        function simulateActions(type, targets, accountIds, delay, maxActions, comments) {
-            let actionsCompleted = 0;
-            let accountIndex = 0;
+
+        function simulateActionExecution(actionType, accountIds) {
+            let completed = 0;
+            const total = accountIds.length * 10; // Simulate 10 actions per account
             
             const interval = setInterval(() => {
-                if (!isRunning || actionsCompleted >= maxActions || accountIndex >= accountIds.length) {
+                if (completed >= total) {
                     clearInterval(interval);
-                    isRunning = false;
-                    logSystem('Actions completed', 'success');
+                    showAlert('تم الانتهاء من تنفيذ الإجراء', 'success');
                     return;
                 }
                 
-                const accountId = accountIds[accountIndex];
-                const account = accounts.find(acc => acc.id === accountId);
-                const target = targets[Math.floor(Math.random() * targets.length)];
-                const comment = comments.length > 0 ? comments[Math.floor(Math.random() * comments.length)] : '';
+                completed++;
+                updateProgress(completed, total);
                 
-                if (account && account.status === 'active') {
-                    // Simulate action
-                    let message = '';
-                    switch(type) {
+                // Update account stats
+                const randomAccountId = accountIds[Math.floor(Math.random() * accountIds.length)];
+                const account = accounts.find(acc => acc.id === randomAccountId);
+                if (account && account.stats) {
+                    switch(actionType) {
                         case 'follow':
-                            message = `Following ${target}`;
+                            account.stats.follows++;
                             break;
                         case 'like':
-                            message = `Liking ${target}`;
+                            account.stats.likes++;
                             break;
                         case 'comment':
-                            message = `Commenting "${comment}" on ${target}`;
+                            account.stats.comments++;
                             break;
-                        default:
-                            message = `Performing ${type} on ${target}`;
                     }
-                    
-                    const success = Math.random() > 0.2;
-                    
-                    if (success) {
-                        account.actionsToday = (account.actionsToday || 0) + 1;
-                        logSystem(`[${account.username}] ${message} ✓`, 'success');
-                    } else {
-                        logSystem(`[${account.username}] ${message} ✗`, 'error');
-                    }
-                    
-                    actionsCompleted++;
-                    accountIndex = (accountIndex + 1) % accountIds.length;
-                    
                     saveData();
                     updateStats();
                 }
-            }, delay);
-            
-            currentJobs.push(interval);
+            }, 500);
         }
-        
-        function stopActions() {
-            isRunning = false;
-            currentJobs.forEach(interval => clearInterval(interval));
-            currentJobs = [];
-            logSystem('Actions stopped', 'warning');
+
+        function updateProgress(current, total) {
+            // Update progress display
+            const percent = Math.round((current / total) * 100);
+            // You can update a progress bar here if needed
         }
-        
+
+        function quickAction(action) {
+            configureAction(action);
+        }
+
+        // Modal Management
+        function closeModal() {
+            document.getElementById('actionModal').classList.remove('active');
+            currentAction = null;
+        }
+
         // Data Management
         function saveData() {
             const data = {
-                accounts,
-                proxies,
-                schedules,
-                version: '2.0'
+                accounts: accounts,
+                schedules: schedules,
+                version: '1.0'
             };
-            localStorage.setItem('instagramBotData', JSON.stringify(data));
+            localStorage.setItem('instagramManagerData', JSON.stringify(data));
         }
-        
+
         function loadData() {
-            const saved = localStorage.getItem('instagramBotData');
+            const saved = localStorage.getItem('instagramManagerData');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
                     accounts = data.accounts || [];
-                    proxies = data.proxies || [];
                     schedules = data.schedules || [];
                 } catch (e) {
                     console.error('Error loading data:', e);
                 }
             }
         }
-        
+
         function exportData() {
             const data = {
-                accounts,
-                proxies,
-                schedules,
+                accounts: accounts,
+                schedules: schedules,
                 exportedAt: new Date().toISOString()
             };
             
@@ -524,142 +1333,123 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `instagram_bot_${new Date().getTime()}.json`;
+            a.download = `instagram_manager_${new Date().getTime()}.json`;
             a.click();
             
-            logSystem('Data exported', 'success');
+            showAlert('تم تصدير البيانات', 'success');
         }
-        
+
         function importData() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json';
             
-            input.onchange = e => {
+            input.onchange = async (e) => {
                 const file = e.target.files[0];
-                const reader = new FileReader();
+                const text = await file.text();
                 
-                reader.onload = event => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        accounts = data.accounts || [];
-                        proxies = data.proxies || [];
-                        schedules = data.schedules || [];
-                        
-                        saveData();
-                        renderAccounts();
-                        renderAccountSelection();
-                        updateStats();
-                        
-                        logSystem('Data imported successfully', 'success');
-                    } catch (error) {
-                        logSystem('Error importing data', 'error');
-                    }
-                };
-                
-                reader.readAsText(file);
+                try {
+                    const data = JSON.parse(text);
+                    accounts = data.accounts || [];
+                    schedules = data.schedules || [];
+                    
+                    saveData();
+                    renderAccounts();
+                    updateStats();
+                    showAlert('تم استيراد البيانات بنجاح', 'success');
+                } catch (error) {
+                    showAlert('خطأ في استيراد البيانات', 'error');
+                }
             };
             
             input.click();
         }
-        
-        // Logging
-        function logSystem(message, type = 'info') {
-            const logDiv = document.getElementById('systemLogs');
-            const logLine = document.createElement('div');
-            logLine.className = `log-line ${type}`;
+
+        function clearAllData() {
+            if (!confirm('هل أنت متأكد من مسح جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
             
-            const timestamp = new Date().toLocaleTimeString();
-            logLine.textContent = `[${timestamp}] ${message}`;
-            
-            logDiv.appendChild(logLine);
-            logDiv.scrollTop = logDiv.scrollHeight;
+            localStorage.removeItem('instagramManagerData');
+            accounts = [];
+            schedules = [];
+            renderAccounts();
+            updateStats();
+            showAlert('تم مسح جميع البيانات', 'success');
         }
-        
+
+        // UI Updates
         function updateStats() {
             document.getElementById('totalAccounts').textContent = accounts.length;
-            const active = accounts.filter(a => a.status === 'active').length;
-            document.getElementById('activeAccounts').textContent = active;
             
-            const totalActions = accounts.reduce((sum, acc) => sum + (acc.actionsToday || 0), 0);
-            document.getElementById('todayActions').textContent = totalActions;
+            const activeAccounts = accounts.filter(acc => acc.status === 'active').length;
+            const successRate = accounts.length > 0 ? Math.round((activeAccounts / accounts.length) * 100) : 0;
             
-            const successRate = accounts.length > 0 ? Math.round((active / accounts.length) * 100) : 0;
             document.getElementById('successRate').textContent = `${successRate}%`;
-        }
-        
-        // Proxies
-        function addProxies() {
-            const proxyText = document.getElementById('proxyList').value;
-            const lines = proxyText.split('\n').filter(p => p.trim());
             
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const proxy = {
-                        host: parts[0],
-                        port: parts[1],
-                        username: parts[2] || null,
-                        password: parts[3] || null,
-                        status: 'unknown'
-                    };
-                    proxies.push(proxy);
-                }
+            // Calculate total tasks
+            let totalTasks = 0;
+            accounts.forEach(acc => {
+                totalTasks += (acc.stats?.follows || 0);
+                totalTasks += (acc.stats?.likes || 0);
+                totalTasks += (acc.stats?.comments || 0);
             });
             
-            saveData();
-            logSystem(`Added ${lines.length} proxies`, 'success');
-            document.getElementById('proxyList').value = '';
+            document.getElementById('activeTasks').textContent = totalTasks;
         }
-        
-        // Initialize on load
-        window.onload = init;
-        
-        // Real Instagram API Simulation (Educational Purposes)
-        class InstagramSimulator {
-            constructor(username, password, proxy = null) {
-                this.username = username;
-                this.password = password;
-                this.proxy = proxy;
-                this.session = null;
-                this.loggedIn = false;
-            }
+
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
             
-            async login() {
-                // Simulated login
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        this.loggedIn = Math.random() > 0.3;
-                        resolve(this.loggedIn);
-                    }, 2000);
-                });
-            }
+            container.appendChild(alert);
             
-            async follow(userId) {
-                if (!this.loggedIn) return false;
-                // Simulated follow
-                await this.delay(1000);
-                return Math.random() > 0.2;
-            }
-            
-            async like(postId) {
-                if (!this.loggedIn) return false;
-                // Simulated like
-                await this.delay(800);
-                return Math.random() > 0.1;
-            }
-            
-            async comment(postId, text) {
-                if (!this.loggedIn) return false;
-                // Simulated comment
-                await this.delay(1200);
-                return Math.random() > 0.3;
-            }
-            
-            async delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
         }
+
+        function updateUI() {
+            // Add CSS for alerts
+            const style = document.createElement('style');
+            style.textContent = `
+                .alert { 
+                    padding: 12px 16px; 
+                    border-radius: 8px; 
+                    margin-bottom: 10px; 
+                    animation: slideIn 0.3s ease;
+                    min-width: 300px;
+                }
+                .alert-info { 
+                    background: rgba(59, 130, 246, 0.1); 
+                    color: #1d4ed8; 
+                    border: 1px solid rgba(59, 130, 246, 0.2); 
+                }
+                .alert-success { 
+                    background: rgba(34, 197, 94, 0.1); 
+                    color: #166534; 
+                    border: 1px solid rgba(34, 197, 94, 0.2); 
+                }
+                .alert-error { 
+                    background: rgba(239, 68, 68, 0.1); 
+                    color: #991b1b; 
+                    border: 1px solid rgba(239, 68, 68, 0.2); 
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('actionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>
