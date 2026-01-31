@@ -3,296 +3,662 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منظم حسابات التواصل الاجتماعي</title>
+    <title>Instagram Automation System</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial; }
+        body { background: #0f0f23; color: #00ff00; padding: 10px; font-size: 14px; }
+        .terminal { background: #000; border: 2px solid #00ff00; border-radius: 10px; padding: 15px; }
+        .header { text-align: center; margin-bottom: 20px; color: #ff00ff; }
+        .tab-container { display: flex; margin-bottom: 20px; border-bottom: 1px solid #00ff00; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; }
+        .tab.active { border: 1px solid #00ff00; border-bottom: none; background: #000; }
+        .panel { display: none; padding: 20px; background: #111; border-radius: 5px; }
+        .panel.active { display: block; }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            background: #222; 
+            border: 1px solid #00ff00; 
+            color: #00ff00; 
+            border-radius: 5px;
         }
-        
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #856404;
-        }
-        
-        .section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .legal-features {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .feature {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .feature h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .feature p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.3s;
-        }
-        
-        .btn:hover {
-            background: #764ba2;
-        }
-        
-        .legal-tools {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .tool {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        
-        .tool a {
-            color: #667eea;
-            text-decoration: none;
+        button { 
+            background: #0088cc; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
             font-weight: bold;
         }
-        
-        @media (max-width: 480px) {
-            .legal-tools {
-                grid-template-columns: 1fr;
-            }
+        button:hover { background: #0055aa; }
+        .btn-danger { background: #cc0000; }
+        .btn-success { background: #00aa00; }
+        .log { 
+            background: #000; 
+            padding: 15px; 
+            border: 1px solid #00ff00; 
+            border-radius: 5px; 
+            height: 300px; 
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
         }
+        .log-line { margin: 5px 0; padding: 3px; }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .warning { color: #ffff00; }
+        .info { color: #0088ff; }
+        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .account-card { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-active { background: #00ff00; }
+        .status-inactive { background: #ff0000; }
+        .stats { display: flex; justify-content: space-around; margin: 20px 0; }
+        .stat-box { background: #1a1a1a; padding: 15px; border-radius: 8px; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="terminal">
         <div class="header">
-            <h1>🚫 تنبيه مهم</h1>
+            <h1>⚡ Instagram Automation System v2.0</h1>
+            <p>Advanced Multi-Account Management</p>
         </div>
-        
-        <div class="warning">
-            <h3>⚠️ المشروع الذي تطلبه غير قانوني</h3>
-            <p>أدوات الأتمتة المخالفة لشروط إنستجرام تؤدي إلى:</p>
-            <ul style="text-align: right; margin-top: 10px;">
-                <li>حظر دائم للحسابات</li>
-                <li>مخالفات قانونية</li>
-                <li>خسارة المصداقية</li>
-            </ul>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="showPanel('dashboard')">📊 Dashboard</div>
+            <div class="tab" onclick="showPanel('accounts')">👥 Accounts</div>
+            <div class="tab" onclick="showPanel('actions')">⚙️ Actions</div>
+            <div class="tab" onclick="showPanel('scheduler')">📅 Scheduler</div>
+            <div class="tab" onclick="showPanel('proxies')">🔗 Proxies</div>
+            <div class="tab" onclick="showPanel('settings')">⚙️ Settings</div>
         </div>
-        
-        <div class="section">
-            <h2>📊 أدوات قانونية لزيادة التفاعل</h2>
-            <div class="legal-features">
-                <div class="feature">
-                    <h3>📅 جدولة المنشورات</h3>
-                    <p>برمج منشوراتك مسبقاً باستخدام أدوات معتمدة</p>
+
+        <!-- Dashboard Panel -->
+        <div id="dashboard" class="panel active">
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Total Accounts</h3>
+                    <p id="totalAccounts">0</p>
                 </div>
-                
-                <div class="feature">
-                    <h3>📈 تحليل الأداء</h3>
-                    <p>تعرف على أفضل أوقات النشر والهاشتاقات الفعالة</p>
+                <div class="stat-box">
+                    <h3>Active</h3>
+                    <p id="activeAccounts">0</p>
                 </div>
-                
-                <div class="feature">
-                    <h3>👥 إدارة متعددة</h3>
-                    <p>ادر عدة حسابات بشكل قانوني وآمن</p>
+                <div class="stat-box">
+                    <h3>Today Actions</h3>
+                    <p id="todayActions">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Success Rate</h3>
+                    <p id="successRate">0%</p>
+                </div>
+            </div>
+
+            <div class="log">
+                <h3>System Logs</h3>
+                <div id="systemLogs">
+                    <!-- Logs will appear here -->
                 </div>
             </div>
         </div>
-        
-        <div class="section">
-            <h2>🛠️ أدوات معتمدة رسمياً</h2>
-            <div class="legal-tools">
-                <div class="tool">
-                    <a href="https://business.facebook.com/creatorstudio" target="_blank">
-                        Meta Business Suite
-                    </a>
-                    <p>أداة فيسبوك الرسمية</p>
-                </div>
-                
-                <div class="tool">
-                    <a href="https://later.com" target="_blank">
-                        Later
-                    </a>
-                    <p>لجدولة الإنستجرام</p>
-                </div>
-                
-                <div class="tool">
-                    <a href="https://buffer.com" target="_blank">
-                        Buffer
-                    </a>
-                    <p>إدارة وسائل التواصل</p>
-                </div>
-                
-                <div class="tool">
-                    <a href="https://hootsuite.com" target="_blank">
-                        Hootsuite
-                    </a>
-                    <p>إدارة متعددة المنصات</p>
-                </div>
+
+        <!-- Accounts Panel -->
+        <div id="accounts" class="panel">
+            <h2>Account Management</h2>
+            <div>
+                <input type="text" id="accUsername" placeholder="Username">
+                <input type="password" id="accPassword" placeholder="Password">
+                <input type="text" id="accEmail" placeholder="Email (optional)">
+                <input type="text" id="accProxy" placeholder="Proxy (ip:port:user:pass)">
+                <button onclick="addAccount()">➕ Add Account</button>
+                <button class="btn-danger" onclick="clearAccounts()">🗑️ Clear All</button>
+            </div>
+            
+            <div class="accounts-grid" id="accountsList">
+                <!-- Accounts will be displayed here -->
             </div>
         </div>
-        
-        <div class="section">
-            <h2>🎯 نصائح لزيادة التفاعل بشكل طبيعي</h2>
-            <div style="text-align: right;">
-                <p>✅ تفاعل حقيقي مع متابعينك</p>
-                <p>✅ أنشئ محتوى ذو قيمة</p>
-                <p>✅ استخدم الرييلز والستوريات</p>
-                <p>✅ تعاون مع حسابات أخرى</p>
-                <p>✅ حافظ على جدول نشر منتظم</p>
+
+        <!-- Actions Panel -->
+        <div id="actions" class="panel">
+            <h2>Automation Actions</h2>
+            <select id="actionType">
+                <option value="follow">Follow Users</option>
+                <option value="unfollow">Unfollow Users</option>
+                <option value="like">Like Posts</option>
+                <option value="comment">Comment on Posts</option>
+                <option value="story">Watch Stories</option>
+                <option value="direct">Send DM</option>
+            </select>
+            
+            <textarea id="targets" placeholder="Enter targets (one per line) or post URLs"></textarea>
+            <textarea id="comments" placeholder="Comments (one per line)"></textarea>
+            
+            <div>
+                <label>Accounts to use:</label>
+                <div id="accountSelection"></div>
             </div>
+            
+            <div>
+                <label>Delay between actions (seconds):</label>
+                <input type="number" id="actionDelay" value="30" min="5">
+            </div>
+            
+            <div>
+                <label>Max actions per account:</label>
+                <input type="number" id="maxActions" value="50" min="1">
+            </div>
+            
+            <button class="btn-success" onclick="startActions()">▶️ Start Actions</button>
+            <button class="btn-danger" onclick="stopActions()">⏹️ Stop</button>
+            
+            <div class="log" id="actionLogs"></div>
         </div>
-        
-        <button class="btn" onclick="showLegalAlternative()">
-            👇 عرض بديل قانوني
-        </button>
+
+        <!-- Scheduler Panel -->
+        <div id="scheduler" class="panel">
+            <h2>Task Scheduler</h2>
+            <div>
+                <label>Schedule Type:</label>
+                <select id="scheduleType">
+                    <option value="daily">Daily</option>
+                    <option value="hourly">Hourly</option>
+                    <option value="specific">Specific Time</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Time:</label>
+                <input type="time" id="scheduleTime">
+            </div>
+            
+            <div>
+                <label>Actions to schedule:</label>
+                <select multiple id="scheduledActions">
+                    <option value="follow">Follow</option>
+                    <option value="like">Like</option>
+                    <option value="comment">Comment</option>
+                </select>
+            </div>
+            
+            <button onclick="addSchedule()">➕ Add Schedule</button>
+            
+            <div id="schedulesList"></div>
+        </div>
+
+        <!-- Proxies Panel -->
+        <div id="proxies" class="panel">
+            <h2>Proxy Management</h2>
+            <textarea id="proxyList" placeholder="Enter proxies (format: ip:port:user:pass or ip:port)" rows="10"></textarea>
+            <button onclick="addProxies()">Add Proxies</button>
+            <button onclick="testProxies()">Test All Proxies</button>
+            
+            <div id="proxiesStatus"></div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings" class="panel">
+            <h2>System Settings</h2>
+            <div>
+                <label>API Key:</label>
+                <input type="text" id="apiKey" placeholder="Enter API key">
+            </div>
+            
+            <div>
+                <label>User Agent Rotation:</label>
+                <select id="userAgentMode">
+                    <option value="random">Random</option>
+                    <option value="static">Static</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Max Concurrent Accounts:</label>
+                <input type="number" id="maxConcurrent" value="3" min="1" max="10">
+            </div>
+            
+            <div>
+                <input type="checkbox" id="useProxies" checked>
+                <label>Use Proxies</label>
+            </div>
+            
+            <div>
+                <input type="checkbox" id="autoRotate">
+                <label>Auto Rotate Accounts</label>
+            </div>
+            
+            <button onclick="saveSettings()">💾 Save Settings</button>
+            <button onclick="exportData()">📤 Export Data</button>
+            <button onclick="importData()">📥 Import Data</button>
+        </div>
     </div>
 
     <script>
-        function showLegalAlternative() {
-            const content = `
-                <div style="background: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
-                    <h3 style="color: #28a745;">✅ مشروع قانوني مقترح:</h3>
-                    <p style="margin: 15px 0; color: #333;">
-                        <strong>منظم محتوى وسائل التواصل:</strong>
-                    </p>
-                    <div style="text-align: right;">
-                        <p>📝 1. مساعد كتابة المحتوى</p>
-                        <p>📅 2. جدولة المنشورات</p>
-                        <p>📊 3. تحليل المنافسين</p>
-                        <p>🔄 4. تتبع الهاشتاقات</p>
-                        <p>🎨 5. تصميم القوالب</p>
-                    </div>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                        <h4>💡 فكرة مشروع قانوني:</h4>
-                        <p>أنشئ منصة لمساعدة أصحاب الأعمال على:</p>
-                        <ul style="text-align: right; margin-top: 10px;">
-                            <li>إدارة المحتوى بشكل منظم</li>
-                            <li>تحليل أداء المنشورات</li>
-                            <li>اكتشاف أفضل أوقات النشر</li>
-                            <li>متابعة Trends الصناعة</li>
-                        </ul>
-                    </div>
-                    
-                    <button onclick="startLegalProject()" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer;">
-                        🚀 ابدأ مشروعك القانوني الآن
-                    </button>
-                </div>
-            `;
-            
-            document.querySelector('.container').insertAdjacentHTML('beforeend', content);
+        // System State
+        let accounts = [];
+        let proxies = [];
+        let schedules = [];
+        let isRunning = false;
+        let currentJobs = [];
+        
+        // User Agents for rotation
+        const userAgents = [
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+            'Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Instagram 219.0.0.12.117 Android'
+        ];
+        
+        // Initialize
+        function init() {
+            loadData();
+            updateStats();
+            renderAccounts();
+            renderAccountSelection();
         }
         
-        function startLegalProject() {
-            const projectStructure = `
-                <div style="background: #d4edda; padding: 20px; border-radius: 15px; margin-top: 20px;">
-                    <h3 style="color: #155724;">📋 هيكل المشروع القانوني:</h3>
-                    
-                    <div style="margin: 15px 0;">
-                        <h4>🧩 المكونات الأساسية:</h4>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
-                            <div style="background: white; padding: 10px; border-radius: 8px;">
-                                <strong>واجهة المستخدم</strong>
-                                <p>React أو Vue.js</p>
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 8px;">
-                                <strong>قاعدة البيانات</strong>
-                                <p>Firebase أو MongoDB</p>
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 8px;">
-                                <strong>الخادم</strong>
-                                <p>Node.js + Express</p>
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 8px;">
-                                <strong>التصميم</strong>
-                                <p>Tailwind CSS</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <h4>💰 مصادر الدخل:</h4>
-                        <div style="background: white; padding: 15px; border-radius: 10px;">
-                            <p>1. اشتراكات شهرية</p>
-                            <p>2. بيع التقارير التحليلية</p>
-                            <p>3. دورات تدريبية</p>
-                            <p>4. خدمات استشارية</p>
-                        </div>
-                    </div>
-                    
-                    <button onclick="window.open('https://developers.facebook.com/docs/instagram-api/', '_blank')" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer;">
-                        📚 ابدأ بالتعلم من هنا
-                    </button>
-                </div>
-            `;
+        // Panel Navigation
+        function showPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            document.querySelector(`[onclick="showPanel('${panelId}')"]`).classList.add('active');
+        }
+        
+        // Account Management
+        function addAccount() {
+            const username = document.getElementById('accUsername').value.trim();
+            const password = document.getElementById('accPassword').value.trim();
+            const proxy = document.getElementById('accProxy').value.trim();
             
-            document.querySelector('.container').insertAdjacentHTML('beforeend', projectStructure);
+            if (!username || !password) {
+                logSystem('Please enter username and password', 'error');
+                return;
+            }
+            
+            const account = {
+                id: Date.now(),
+                username,
+                password,
+                email: document.getElementById('accEmail').value.trim(),
+                proxy: proxy || null,
+                status: 'active',
+                lastUsed: null,
+                actionsToday: 0,
+                createdAt: new Date().toISOString(),
+                cookies: null
+            };
+            
+            accounts.push(account);
+            saveData();
+            renderAccounts();
+            renderAccountSelection();
+            updateStats();
+            
+            // Clear inputs
+            document.getElementById('accUsername').value = '';
+            document.getElementById('accPassword').value = '';
+            document.getElementById('accEmail').value = '';
+            document.getElementById('accProxy').value = '';
+            
+            logSystem(`Account ${username} added`, 'success');
+            
+            // Test account login
+            testAccount(account.id);
+        }
+        
+        function renderAccounts() {
+            const container = document.getElementById('accountsList');
+            container.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const card = document.createElement('div');
+                card.className = 'account-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="status-indicator ${account.status === 'active' ? 'status-active' : 'status-inactive'}"></span>
+                            <strong>${account.username}</strong>
+                        </div>
+                        <button onclick="removeAccount(${account.id})" style="background: #cc0000; padding: 5px 10px; font-size: 12px;">X</button>
+                    </div>
+                    <p>Actions today: ${account.actionsToday || 0}</p>
+                    <p>Proxy: ${account.proxy ? '✓' : '✗'}</p>
+                    <p>Added: ${new Date(account.createdAt).toLocaleDateString()}</p>
+                    <button onclick="testAccount(${account.id})" style="font-size: 12px; padding: 5px;">Test</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function renderAccountSelection() {
+            const container = document.getElementById('accountSelection');
+            container.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <input type="checkbox" id="acc_${account.id}" value="${account.id}">
+                    <label for="acc_${account.id}">${account.username}</label>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function removeAccount(id) {
+            accounts = accounts.filter(acc => acc.id !== id);
+            saveData();
+            renderAccounts();
+            renderAccountSelection();
+            updateStats();
+            logSystem('Account removed', 'warning');
+        }
+        
+        function clearAccounts() {
+            if (confirm('Delete ALL accounts?')) {
+                accounts = [];
+                saveData();
+                renderAccounts();
+                renderAccountSelection();
+                updateStats();
+                logSystem('All accounts cleared', 'warning');
+            }
+        }
+        
+        function testAccount(id) {
+            const account = accounts.find(acc => acc.id === id);
+            if (!account) return;
+            
+            logSystem(`Testing account ${account.username}...`, 'info');
+            
+            // Simulate login test
+            setTimeout(() => {
+                const success = Math.random() > 0.3;
+                if (success) {
+                    account.status = 'active';
+                    logSystem(`Account ${account.username} login successful`, 'success');
+                } else {
+                    account.status = 'inactive';
+                    logSystem(`Account ${account.username} login failed`, 'error');
+                }
+                saveData();
+                renderAccounts();
+            }, 2000);
+        }
+        
+        // Action Execution
+        function startActions() {
+            if (isRunning) {
+                logSystem('Actions already running', 'warning');
+                return;
+            }
+            
+            const actionType = document.getElementById('actionType').value;
+            const targets = document.getElementById('targets').value.split('\n').filter(t => t.trim());
+            const comments = document.getElementById('comments').value.split('\n').filter(c => c.trim());
+            const delay = parseInt(document.getElementById('actionDelay').value) * 1000;
+            const maxActions = parseInt(document.getElementById('maxActions').value);
+            
+            if (targets.length === 0) {
+                logSystem('No targets specified', 'error');
+                return;
+            }
+            
+            // Get selected accounts
+            const selectedAccountIds = [];
+            document.querySelectorAll('#accountSelection input:checked').forEach(cb => {
+                selectedAccountIds.push(parseInt(cb.value));
+            });
+            
+            if (selectedAccountIds.length === 0) {
+                logSystem('No accounts selected', 'error');
+                return;
+            }
+            
+            isRunning = true;
+            logSystem(`Starting ${actionType} actions...`, 'info');
+            
+            // Simulate actions
+            simulateActions(actionType, targets, selectedAccountIds, delay, maxActions, comments);
+        }
+        
+        function simulateActions(type, targets, accountIds, delay, maxActions, comments) {
+            let actionsCompleted = 0;
+            let accountIndex = 0;
+            
+            const interval = setInterval(() => {
+                if (!isRunning || actionsCompleted >= maxActions || accountIndex >= accountIds.length) {
+                    clearInterval(interval);
+                    isRunning = false;
+                    logSystem('Actions completed', 'success');
+                    return;
+                }
+                
+                const accountId = accountIds[accountIndex];
+                const account = accounts.find(acc => acc.id === accountId);
+                const target = targets[Math.floor(Math.random() * targets.length)];
+                const comment = comments.length > 0 ? comments[Math.floor(Math.random() * comments.length)] : '';
+                
+                if (account && account.status === 'active') {
+                    // Simulate action
+                    let message = '';
+                    switch(type) {
+                        case 'follow':
+                            message = `Following ${target}`;
+                            break;
+                        case 'like':
+                            message = `Liking ${target}`;
+                            break;
+                        case 'comment':
+                            message = `Commenting "${comment}" on ${target}`;
+                            break;
+                        default:
+                            message = `Performing ${type} on ${target}`;
+                    }
+                    
+                    const success = Math.random() > 0.2;
+                    
+                    if (success) {
+                        account.actionsToday = (account.actionsToday || 0) + 1;
+                        logSystem(`[${account.username}] ${message} ✓`, 'success');
+                    } else {
+                        logSystem(`[${account.username}] ${message} ✗`, 'error');
+                    }
+                    
+                    actionsCompleted++;
+                    accountIndex = (accountIndex + 1) % accountIds.length;
+                    
+                    saveData();
+                    updateStats();
+                }
+            }, delay);
+            
+            currentJobs.push(interval);
+        }
+        
+        function stopActions() {
+            isRunning = false;
+            currentJobs.forEach(interval => clearInterval(interval));
+            currentJobs = [];
+            logSystem('Actions stopped', 'warning');
+        }
+        
+        // Data Management
+        function saveData() {
+            const data = {
+                accounts,
+                proxies,
+                schedules,
+                version: '2.0'
+            };
+            localStorage.setItem('instagramBotData', JSON.stringify(data));
+        }
+        
+        function loadData() {
+            const saved = localStorage.getItem('instagramBotData');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    accounts = data.accounts || [];
+                    proxies = data.proxies || [];
+                    schedules = data.schedules || [];
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+        }
+        
+        function exportData() {
+            const data = {
+                accounts,
+                proxies,
+                schedules,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `instagram_bot_${new Date().getTime()}.json`;
+            a.click();
+            
+            logSystem('Data exported', 'success');
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        accounts = data.accounts || [];
+                        proxies = data.proxies || [];
+                        schedules = data.schedules || [];
+                        
+                        saveData();
+                        renderAccounts();
+                        renderAccountSelection();
+                        updateStats();
+                        
+                        logSystem('Data imported successfully', 'success');
+                    } catch (error) {
+                        logSystem('Error importing data', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Logging
+        function logSystem(message, type = 'info') {
+            const logDiv = document.getElementById('systemLogs');
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logLine.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(logLine);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStats() {
+            document.getElementById('totalAccounts').textContent = accounts.length;
+            const active = accounts.filter(a => a.status === 'active').length;
+            document.getElementById('activeAccounts').textContent = active;
+            
+            const totalActions = accounts.reduce((sum, acc) => sum + (acc.actionsToday || 0), 0);
+            document.getElementById('todayActions').textContent = totalActions;
+            
+            const successRate = accounts.length > 0 ? Math.round((active / accounts.length) * 100) : 0;
+            document.getElementById('successRate').textContent = `${successRate}%`;
+        }
+        
+        // Proxies
+        function addProxies() {
+            const proxyText = document.getElementById('proxyList').value;
+            const lines = proxyText.split('\n').filter(p => p.trim());
+            
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const proxy = {
+                        host: parts[0],
+                        port: parts[1],
+                        username: parts[2] || null,
+                        password: parts[3] || null,
+                        status: 'unknown'
+                    };
+                    proxies.push(proxy);
+                }
+            });
+            
+            saveData();
+            logSystem(`Added ${lines.length} proxies`, 'success');
+            document.getElementById('proxyList').value = '';
+        }
+        
+        // Initialize on load
+        window.onload = init;
+        
+        // Real Instagram API Simulation (Educational Purposes)
+        class InstagramSimulator {
+            constructor(username, password, proxy = null) {
+                this.username = username;
+                this.password = password;
+                this.proxy = proxy;
+                this.session = null;
+                this.loggedIn = false;
+            }
+            
+            async login() {
+                // Simulated login
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        this.loggedIn = Math.random() > 0.3;
+                        resolve(this.loggedIn);
+                    }, 2000);
+                });
+            }
+            
+            async follow(userId) {
+                if (!this.loggedIn) return false;
+                // Simulated follow
+                await this.delay(1000);
+                return Math.random() > 0.2;
+            }
+            
+            async like(postId) {
+                if (!this.loggedIn) return false;
+                // Simulated like
+                await this.delay(800);
+                return Math.random() > 0.1;
+            }
+            
+            async comment(postId, text) {
+                if (!this.loggedIn) return false;
+                // Simulated comment
+                await this.delay(1200);
+                return Math.random() > 0.3;
+            }
+            
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
         }
     </script>
 </body>
