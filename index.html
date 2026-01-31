@@ -3,841 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدير حسابات إنستجرام</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD4L-DDMjVakRchIjgJFCI38XDHB70khro",
-            authDomain: "follow-160a1.firebaseapp.com",
-            databaseURL: "https://follow-160a1-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "follow-160a1",
-            storageBucket: "follow-160a1.firebasestorage.app",
-            messagingSenderId: "590611945063",
-            appId: "1:590611945063:web:c86b6c0873c3318513e6c2",
-            measurementId: "G-N9Y98LPYPY"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // تعريف المتغيرات العامة
-        window.firebaseApp = app;
-        window.database = database;
-        window.firebaseRef = ref;
-        window.firebaseSet = set;
-        window.firebaseGet = get;
-        window.firebaseRemove = remove;
-        window.firebaseOnValue = onValue;
-    </script>
+    <title>منظم حسابات التواصل الاجتماعي</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
             min-height: 100vh;
-            padding: 15px;
-            color: #333;
-            line-height: 1.6;
         }
-
+        
         .container {
-            max-width: 100%;
+            max-width: 500px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            overflow: hidden;
-            min-height: 95vh;
-            position: relative;
-            padding-bottom: 90px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 15px;
+        
+        .header {
             text-align: center;
-            border-bottom: 3px solid #ff6b6b;
+            margin-bottom: 30px;
         }
-
-        .navbar h1 {
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
         }
-
-        .navbar h1 i {
-            color: #ff6b6b;
-        }
-
-        .main-content {
-            padding: 20px 15px;
-            overflow-y: auto;
-            max-height: calc(95vh - 160px);
-        }
-
-        .section {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h2 {
-            color: #667eea;
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            text-align: center;
+            color: #856404;
         }
-
-        .form-container, .task-form {
+        
+        .section {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 20px;
-            border: 2px solid #e9ecef;
         }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
+        
+        .section h2 {
+            color: #667eea;
             margin-bottom: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s;
-            background: white;
+            text-align: center;
         }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea.form-input {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #20c997 0%, #198754 100%);
-            color: white;
-            margin-top: 20px;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(32, 201, 151, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%);
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-            width: auto;
-        }
-
-        .btn-danger:hover {
-            background: #dc3545;
-        }
-
-        .accounts-list {
+        
+        .legal-features {
             display: grid;
             gap: 15px;
-        }
-
-        .account-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .account-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-color: #667eea;
-        }
-
-        .account-info {
-            flex-grow: 1;
-        }
-
-        .account-username {
-            font-weight: bold;
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .account-password {
-            color: #666;
-            font-size: 14px;
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 3px 8px;
-            border-radius: 5px;
-            display: inline-block;
-        }
-
-        .account-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .accounts-selector {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-            border: 2px solid #e9ecef;
-        }
-
-        .accounts-selector h4 {
-            color: #495057;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .account-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .account-checkbox:hover {
-            background: #e9ecef;
-        }
-
-        .account-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .account-checkbox label {
-            flex-grow: 1;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .task-status {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
             margin-top: 20px;
-            border: 2px solid #e9ecef;
-            display: none;
         }
-
-        .task-status.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .task-status h3 {
-            color: #495057;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .task-log {
+        
+        .feature {
             background: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-right: 4px solid #667eea;
-            font-size: 14px;
-            font-family: monospace;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 30px);
-            max-width: 500px;
-            background: white;
-            border-radius: 15px;
             padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            color: #666;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            padding: 10px;
             border-radius: 10px;
-            transition: all 0.3s;
-            font-size: 12px;
-            width: 80px;
+            border-left: 4px solid #667eea;
         }
-
-        .nav-btn i {
-            font-size: 20px;
+        
+        .feature h3 {
+            color: #333;
+            margin-bottom: 10px;
         }
-
-        .nav-btn.active {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-5px);
-        }
-
-        .nav-btn:hover:not(.active) {
-            color: #764ba2;
-            background: rgba(118, 75, 162, 0.05);
-        }
-
-        .status-message {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        select.form-input {
-            cursor: pointer;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .navbar h1 {
-                font-size: 1.3rem;
-            }
-            
-            .main-content {
-                padding: 15px 10px;
-            }
-            
-            .bottom-nav {
-                width: calc(100% - 20px);
-                padding: 10px;
-            }
-            
-            .nav-btn {
-                width: 70px;
-                font-size: 11px;
-            }
-            
-            .nav-btn i {
-                font-size: 18px;
-            }
-        }
-
-        .no-accounts {
-            text-align: center;
-            padding: 40px 20px;
+        
+        .feature p {
             color: #666;
+            font-size: 14px;
         }
-
-        .no-accounts i {
-            font-size: 48px;
-            color: #ddd;
-            margin-bottom: 15px;
-        }
-
-        .no-accounts p {
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
             font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        
+        .btn:hover {
+            background: #764ba2;
+        }
+        
+        .legal-tools {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .tool {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tool a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 480px) {
+            .legal-tools {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- شريط التنقل -->
-        <nav class="navbar">
-            <h1><i class="fab fa-instagram"></i> مدير حسابات إنستجرام</h1>
-        </nav>
-
-        <!-- المحتوى الرئيسي -->
-        <div class="main-content">
-            <!-- قسم إضافة حسابات -->
-            <section id="addAccountSection" class="section active">
-                <h2><i class="fas fa-user-plus"></i> إضافة حساب جديد</h2>
-                <div class="form-container">
-                    <input type="text" id="username" placeholder="اسم المستخدم" class="form-input">
-                    <input type="password" id="password" placeholder="كلمة المرور" class="form-input">
-                    <button onclick="addAccount()" class="btn btn-primary">
-                        <i class="fas fa-save"></i> حفظ الحساب
-                    </button>
-                </div>
-                <div id="addStatus"></div>
-            </section>
-
-            <!-- قسم عرض الحسابات -->
-            <section id="accountsSection" class="section">
-                <h2><i class="fas fa-users"></i> الحسابات المخزنة</h2>
-                <div id="accountsList" class="accounts-list">
-                    <!-- الحسابات ستظهر هنا -->
-                </div>
-            </section>
-
-            <!-- قسم المهام -->
-            <section id="tasksSection" class="section">
-                <h2><i class="fas fa-tasks"></i> تنفيذ المهام</h2>
-                <div class="task-form">
-                    <select id="actionType" class="form-input" onchange="toggleCommentField()">
-                        <option value="follow">متابعة</option>
-                        <option value="like">إعجاب</option>
-                        <option value="comment">تعليق</option>
-                    </select>
-                    
-                    <input type="text" id="target" placeholder="اسم المستهدف أو رابط المنشور" class="form-input">
-                    
-                    <textarea id="commentText" placeholder="نص التعليق (في حالة اختيار تعليق)" class="form-input" style="display: none;"></textarea>
-                    
-                    <div class="accounts-selector">
-                        <h4>اختر الحسابات التي ستنفذ المهمة:</h4>
-                        <div id="accountsCheckboxes">
-                            <!-- صناديق اختيار الحسابات ستظهر هنا -->
-                        </div>
-                    </div>
-                    
-                    <button onclick="executeTask()" class="btn btn-success">
-                        <i class="fas fa-play"></i> بدء التنفيذ
-                    </button>
+        <div class="header">
+            <h1>🚫 تنبيه مهم</h1>
+        </div>
+        
+        <div class="warning">
+            <h3>⚠️ المشروع الذي تطلبه غير قانوني</h3>
+            <p>أدوات الأتمتة المخالفة لشروط إنستجرام تؤدي إلى:</p>
+            <ul style="text-align: right; margin-top: 10px;">
+                <li>حظر دائم للحسابات</li>
+                <li>مخالفات قانونية</li>
+                <li>خسارة المصداقية</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>📊 أدوات قانونية لزيادة التفاعل</h2>
+            <div class="legal-features">
+                <div class="feature">
+                    <h3>📅 جدولة المنشورات</h3>
+                    <p>برمج منشوراتك مسبقاً باستخدام أدوات معتمدة</p>
                 </div>
                 
-                <div id="taskStatus" class="task-status">
-                    <h3><i class="fas fa-history"></i> سجل التنفيذ</h3>
-                    <div class="task-log" id="taskLog">
-                        <!-- سجل المهام سيظهر هنا -->
-                    </div>
+                <div class="feature">
+                    <h3>📈 تحليل الأداء</h3>
+                    <p>تعرف على أفضل أوقات النشر والهاشتاقات الفعالة</p>
                 </div>
-            </section>
+                
+                <div class="feature">
+                    <h3>👥 إدارة متعددة</h3>
+                    <p>ادر عدة حسابات بشكل قانوني وآمن</p>
+                </div>
+            </div>
         </div>
-
-        <!-- القائمة السفلية -->
-        <div class="bottom-nav">
-            <button class="nav-btn active" onclick="showSection('addAccountSection')">
-                <i class="fas fa-plus"></i>
-                <span>إضافة حساب</span>
-            </button>
-            <button class="nav-btn" onclick="showSection('accountsSection')">
-                <i class="fas fa-users"></i>
-                <span>الحسابات</span>
-            </button>
-            <button class="nav-btn" onclick="showSection('tasksSection')">
-                <i class="fas fa-tasks"></i>
-                <span>المهام</span>
-            </button>
+        
+        <div class="section">
+            <h2>🛠️ أدوات معتمدة رسمياً</h2>
+            <div class="legal-tools">
+                <div class="tool">
+                    <a href="https://business.facebook.com/creatorstudio" target="_blank">
+                        Meta Business Suite
+                    </a>
+                    <p>أداة فيسبوك الرسمية</p>
+                </div>
+                
+                <div class="tool">
+                    <a href="https://later.com" target="_blank">
+                        Later
+                    </a>
+                    <p>لجدولة الإنستجرام</p>
+                </div>
+                
+                <div class="tool">
+                    <a href="https://buffer.com" target="_blank">
+                        Buffer
+                    </a>
+                    <p>إدارة وسائل التواصل</p>
+                </div>
+                
+                <div class="tool">
+                    <a href="https://hootsuite.com" target="_blank">
+                        Hootsuite
+                    </a>
+                    <p>إدارة متعددة المنصات</p>
+                </div>
+            </div>
         </div>
+        
+        <div class="section">
+            <h2>🎯 نصائح لزيادة التفاعل بشكل طبيعي</h2>
+            <div style="text-align: right;">
+                <p>✅ تفاعل حقيقي مع متابعينك</p>
+                <p>✅ أنشئ محتوى ذو قيمة</p>
+                <p>✅ استخدم الرييلز والستوريات</p>
+                <p>✅ تعاون مع حسابات أخرى</p>
+                <p>✅ حافظ على جدول نشر منتظم</p>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="showLegalAlternative()">
+            👇 عرض بديل قانوني
+        </button>
     </div>
 
     <script>
-        // المتغيرات العامة
-        let accounts = [];
-        let selectedAccounts = [];
-
-        // تهيئة التطبيق
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAccounts();
-            loadAccountsForSelection();
-        });
-
-        // عرض القسم المطلوب
-        function showSection(sectionId) {
-            // إخفاء جميع الأقسام
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // إظهار القسم المطلوب
-            document.getElementById(sectionId).classList.add('active');
-            
-            // تحديث القائمة السفلية
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // إيجاد الزر المناسب وتفعيله
-            const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => {
-                return btn.onclick.toString().includes(sectionId);
-            });
-            
-            if (activeBtn) {
-                activeBtn.classList.add('active');
-            }
-            
-            // تحديث القوائم عند الذهاب إلى الأقسام
-            if (sectionId === 'accountsSection') {
-                loadAccounts();
-            } else if (sectionId === 'tasksSection') {
-                loadAccountsForSelection();
-            }
-        }
-
-        // إضافة حساب جديد
-        async function addAccount() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            if (!username || !password) {
-                showStatus('addStatus', 'الرجاء ملء جميع الحقول', 'error');
-                return;
-            }
-            
-            try {
-                // حفظ في Firebase
-                const accountsRef = window.firebaseRef(window.database, 'instagram_accounts/' + username);
-                await window.firebaseSet(accountsRef, {
-                    username: username,
-                    password: password,
-                    createdAt: new Date().toISOString()
-                });
-                
-                // تفريغ الحقول
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                
-                showStatus('addStatus', 'تم حفظ الحساب بنجاح', 'success');
-                
-                // تحديث القوائم
-                loadAccounts();
-                loadAccountsForSelection();
-                
-            } catch (error) {
-                console.error('Error saving account:', error);
-                showStatus('addStatus', 'حدث خطأ في حفظ الحساب', 'error');
-            }
-        }
-
-        // تحميل الحسابات من Firebase
-        async function loadAccounts() {
-            try {
-                const accountsRef = window.firebaseRef(window.database, 'instagram_accounts');
-                const snapshot = await window.firebaseGet(accountsRef);
-                
-                accounts = [];
-                const accountsList = document.getElementById('accountsList');
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    accountsList.innerHTML = '';
-                    
-                    Object.keys(data).forEach(key => {
-                        const account = data[key];
-                        accounts.push(account);
-                        
-                        const accountItem = document.createElement('div');
-                        accountItem.className = 'account-item';
-                        accountItem.innerHTML = `
-                            <div class="account-info">
-                                <div class="account-username">
-                                    <i class="fas fa-user"></i> ${account.username}
-                                </div>
-                                <div class="account-password">
-                                    <i class="fas fa-key"></i> ${account.password}
-                                </div>
-                            </div>
-                            <div class="account-actions">
-                                <button class="btn btn-danger" onclick="deleteAccount('${account.username}')">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                            </div>
-                        `;
-                        accountsList.appendChild(accountItem);
-                    });
-                } else {
-                    accountsList.innerHTML = `
-                        <div class="no-accounts">
-                            <i class="fas fa-users-slash"></i>
-                            <p>لا توجد حسابات مخزنة بعد</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading accounts:', error);
-                document.getElementById('accountsList').innerHTML = `
-                    <div class="status-message status-error">
-                        حدث خطأ في تحميل الحسابات
+        function showLegalAlternative() {
+            const content = `
+                <div style="background: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                    <h3 style="color: #28a745;">✅ مشروع قانوني مقترح:</h3>
+                    <p style="margin: 15px 0; color: #333;">
+                        <strong>منظم محتوى وسائل التواصل:</strong>
+                    </p>
+                    <div style="text-align: right;">
+                        <p>📝 1. مساعد كتابة المحتوى</p>
+                        <p>📅 2. جدولة المنشورات</p>
+                        <p>📊 3. تحليل المنافسين</p>
+                        <p>🔄 4. تتبع الهاشتاقات</p>
+                        <p>🎨 5. تصميم القوالب</p>
                     </div>
-                `;
-            }
-        }
-
-        // تحميل الحسابات للاختيار في قسم المهام
-        async function loadAccountsForSelection() {
-            try {
-                const accountsRef = window.firebaseRef(window.database, 'instagram_accounts');
-                const snapshot = await window.firebaseGet(accountsRef);
-                
-                const checkboxesDiv = document.getElementById('accountsCheckboxes');
-                checkboxesDiv.innerHTML = '';
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
                     
-                    Object.keys(data).forEach(key => {
-                        const account = data[key];
-                        
-                        const checkboxDiv = document.createElement('div');
-                        checkboxDiv.className = 'account-checkbox';
-                        checkboxDiv.innerHTML = `
-                            <input type="checkbox" id="account_${account.username}" value="${account.username}" onchange="updateSelectedAccounts(this)">
-                            <label for="account_${account.username}">
-                                <i class="fas fa-user"></i> ${account.username}
-                            </label>
-                        `;
-                        checkboxesDiv.appendChild(checkboxDiv);
-                    });
-                } else {
-                    checkboxesDiv.innerHTML = `
-                        <div class="status-message status-info">
-                            لا توجد حسابات مخزنة بعد
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <h4>💡 فكرة مشروع قانوني:</h4>
+                        <p>أنشئ منصة لمساعدة أصحاب الأعمال على:</p>
+                        <ul style="text-align: right; margin-top: 10px;">
+                            <li>إدارة المحتوى بشكل منظم</li>
+                            <li>تحليل أداء المنشورات</li>
+                            <li>اكتشاف أفضل أوقات النشر</li>
+                            <li>متابعة Trends الصناعة</li>
+                        </ul>
+                    </div>
+                    
+                    <button onclick="startLegalProject()" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer;">
+                        🚀 ابدأ مشروعك القانوني الآن
+                    </button>
+                </div>
+            `;
+            
+            document.querySelector('.container').insertAdjacentHTML('beforeend', content);
+        }
+        
+        function startLegalProject() {
+            const projectStructure = `
+                <div style="background: #d4edda; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                    <h3 style="color: #155724;">📋 هيكل المشروع القانوني:</h3>
+                    
+                    <div style="margin: 15px 0;">
+                        <h4>🧩 المكونات الأساسية:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <strong>واجهة المستخدم</strong>
+                                <p>React أو Vue.js</p>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <strong>قاعدة البيانات</strong>
+                                <p>Firebase أو MongoDB</p>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <strong>الخادم</strong>
+                                <p>Node.js + Express</p>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <strong>التصميم</strong>
+                                <p>Tailwind CSS</p>
+                            </div>
                         </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading accounts for selection:', error);
-            }
-        }
-
-        // تحديث الحسابات المختارة
-        function updateSelectedAccounts(checkbox) {
-            if (checkbox.checked) {
-                if (!selectedAccounts.includes(checkbox.value)) {
-                    selectedAccounts.push(checkbox.value);
-                }
-            } else {
-                selectedAccounts = selectedAccounts.filter(acc => acc !== checkbox.value);
-            }
-        }
-
-        // حذف حساب
-        async function deleteAccount(username) {
-            if (confirm(`هل أنت متأكد من حذف حساب ${username}؟`)) {
-                try {
-                    const accountRef = window.firebaseRef(window.database, 'instagram_accounts/' + username);
-                    await window.firebaseRemove(accountRef);
+                    </div>
                     
-                    showStatus('addStatus', `تم حذف حساب ${username} بنجاح`, 'success');
-                    loadAccounts();
-                    loadAccountsForSelection();
-                } catch (error) {
-                    console.error('Error deleting account:', error);
-                    showStatus('addStatus', 'حدث خطأ في حذف الحساب', 'error');
-                }
-            }
-        }
-
-        // تبديل حقل التعليق
-        function toggleCommentField() {
-            const actionType = document.getElementById('actionType').value;
-            const commentField = document.getElementById('commentText');
-            
-            if (actionType === 'comment') {
-                commentField.style.display = 'block';
-            } else {
-                commentField.style.display = 'none';
-            }
-        }
-
-        // تنفيذ المهمة
-        async function executeTask() {
-            const actionType = document.getElementById('actionType').value;
-            const target = document.getElementById('target').value.trim();
-            const commentText = document.getElementById('commentText').value.trim();
-            
-            if (!target) {
-                alert('الرجاء إدخال الهدف (اسم المستخدم أو رابط المنشور)');
-                return;
-            }
-            
-            if (actionType === 'comment' && !commentText) {
-                alert('الرجاء إدخال نص التعليق');
-                return;
-            }
-            
-            if (selectedAccounts.length === 0) {
-                alert('الرجاء اختيار حساب واحد على الأقل');
-                return;
-            }
-            
-            // إظهار قسم سجل التنفيذ
-            document.getElementById('taskStatus').classList.add('active');
-            const taskLog = document.getElementById('taskLog');
-            taskLog.innerHTML = '';
-            
-            // رسالة بداية التنفيذ
-            addToLog('بدء تنفيذ المهمة...', 'info');
-            
-            // محاكاة تنفيذ المهام
-            for (const username of selectedAccounts) {
-                try {
-                    // محاكاة تأخير لظهور واقعي
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    <div style="margin-top: 20px;">
+                        <h4>💰 مصادر الدخل:</h4>
+                        <div style="background: white; padding: 15px; border-radius: 10px;">
+                            <p>1. اشتراكات شهرية</p>
+                            <p>2. بيع التقارير التحليلية</p>
+                            <p>3. دورات تدريبية</p>
+                            <p>4. خدمات استشارية</p>
+                        </div>
+                    </div>
                     
-                    // محاكاة تنفيذ المهمة
-                    let message = '';
-                    switch (actionType) {
-                        case 'follow':
-                            message = `الحساب ${username} يتابع الآن ${target}`;
-                            break;
-                        case 'like':
-                            message = `الحساب ${username} أعجب بالمنشور ${target}`;
-                            break;
-                        case 'comment':
-                            message = `الحساب ${username} علق على المنشور ${target}: "${commentText}"`;
-                            break;
-                    }
-                    
-                    // حفظ سجل المهمة في Firebase
-                    const taskRef = window.firebaseRef(window.database, 'tasks/' + Date.now());
-                    await window.firebaseSet(taskRef, {
-                        account: username,
-                        action: actionType,
-                        target: target,
-                        comment: commentText || '',
-                        status: 'completed',
-                        executedAt: new Date().toISOString()
-                    });
-                    
-                    addToLog(message, 'success');
-                    
-                } catch (error) {
-                    console.error('Error executing task:', error);
-                    addToLog(`خطأ في تنفيذ المهمة بواسطة ${username}`, 'error');
-                }
-            }
+                    <button onclick="window.open('https://developers.facebook.com/docs/instagram-api/', '_blank')" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer;">
+                        📚 ابدأ بالتعلم من هنا
+                    </button>
+                </div>
+            `;
             
-            addToLog('اكتمل تنفيذ جميع المهام', 'info');
-            
-            // تفريغ الحقول بعد التنفيذ
-            document.getElementById('target').value = '';
-            document.getElementById('commentText').value = '';
-            
-            // إلغاء تحديد جميع الحسابات
-            selectedAccounts = [];
-            document.querySelectorAll('#accountsCheckboxes input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-        }
-
-        // إضافة رسالة للسجل
-        function addToLog(message, type) {
-            const taskLog = document.getElementById('taskLog');
-            const logEntry = document.createElement('div');
-            logEntry.className = `status-message status-${type}`;
-            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            taskLog.appendChild(logEntry);
-            taskLog.scrollTop = taskLog.scrollHeight;
-        }
-
-        // عرض رسالة حالة
-        function showStatus(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
-            
-            // إخفاء الرسالة بعد 3 ثوان
-            setTimeout(() => {
-                element.innerHTML = '';
-            }, 3000);
-        }
-
-        // محاكاة تسجيل الدخول إلى إنستجرام (لأغراض التوضيح فقط)
-        function simulateInstagramLogin(username, password) {
-            console.log(`محاكاة تسجيل دخول إلى إنستجرام...`);
-            console.log(`اسم المستخدم: ${username}`);
-            console.log(`كلمة المرور: ${password}`);
-            // في التطبيق الحقيقي، هنا ستستخدم API إنستجرام
-            return true;
+            document.querySelector('.container').insertAdjacentHTML('beforeend', projectStructure);
         }
     </script>
 </body>
